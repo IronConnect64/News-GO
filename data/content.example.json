@@ -1,0 +1,10 @@
+{
+    "contents": [
+        {
+            "datapath": "data/example",
+            "name": "Example Data",
+            "output": "example.xml",
+            "url": "data/example"
+        }
+    ]
+}
