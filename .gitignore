@@ -14,4 +14,4 @@
 # Custom stuff
 config.json
 *.xml
-.idea
+.vscode
