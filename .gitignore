@@ -12,4 +12,6 @@
 *.out
 
 # Custom stuff
-properties.json
+config.json
+*.xml
+.idea
