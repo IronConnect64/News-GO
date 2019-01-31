@@ -24,11 +24,6 @@ package main
 
 import "encoding/xml"
 
-// Config represents the config data.
-type Config struct {
-	Address string `json:"address"`
-}
-
 // RSS holds our RSS data in a simple struct.
 type RSS struct {
 	XMLName xml.Name `xml:"rss"`
