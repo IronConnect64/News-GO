@@ -40,7 +40,7 @@ type RSS struct {
 			Title string `xml:"title"`
 		} `xml:"image"`
 
-		Item struct {
+		Item []struct {
 			Title     string `xml:"title"`
 			Link      string `xml:"link"`
 			PubDate   string `xml:"pubdate"`
