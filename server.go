@@ -24,6 +24,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,7 +38,21 @@ func main() {
 	log.Println("Initializing server...")
 	server := gin.Default()
 
+	// Our request handlers.
+	server.POST("/news", newsHandler)
+
 	// If possible, we can replace this with RunTLS() in the future.
 	log.Println("Starting server...")
 	server.Run()
+}
+
+func newsHandler(ctx *gin.Context) {
+	switch ctx.PostForm("topic") {
+	case "arts":
+		// example stuff, here we'll need to respond with the XML data.
+		break
+	default:
+		ctx.Redirect(http.StatusNotFound, "") // maybe I'll add some weird HTML data
+		break
+	}
 }
