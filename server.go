@@ -24,11 +24,41 @@ package main
 
 import (
 	"encoding/xml"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
+
+var urls map[string]string
+
+type rss struct {
+	XMLName xml.Name `xml:"rss"`
+
+	Channel struct {
+		Title       string `xml:"title"`
+		Link        string `xml:"link"`
+		Description string `xml:"description"`
+		Language    string `xml:"language"`
+		Copyright   string `xml:"copyright"`
+
+		Image struct {
+			URL   string `xml:"url"`
+			Title string `xml:"title"`
+		} `xml:"image"`
+
+		Item []struct {
+			Title     string `xml:"title"`
+			Link      string `xml:"link"`
+			PubDate   string `xml:"pubdate"`
+			Enclosure struct {
+				URL  string `xml:"url,attr"`
+				Type string `xml:"type,attr"`
+			} `xml:"enclosure"`
+		} `xml:"item"`
+	} `xml:"channel"`
+}
 
 func main() {
 	log.Println("News-GO - 1.1.0")
@@ -38,34 +68,74 @@ func main() {
 	// Let's make an gin engine for our server, and fetch all URLs.
 	log.Println("Initializing server...")
 	server := gin.Default()
-	getURLs()
+
+	// URL list.
+	urls = make(map[string]string)
+
+	// All RSS URLs from Reuters, held in a nice, simple array.
+	urls["arts"] = "http://feeds.reuters.com/news/artsculture"
+	urls["business"] = "http://feeds.reuters.com/reuters/businessNews"
+	urls["company"] = "http://feeds.reuters.com/reuters/companyNews"
+	urls["entertainment"] = "http://feeds.reuters.com/reuters/entertainment"
+	urls["environment"] = "http://feeds.reuters.com/reuters/environment"
+	urls["health"] = "http://feeds.reuters.com/reuters/healthNews"
+	urls["lifestyle"] = "http://feeds.reuters.com/reuters/lifestyle"
+	urls["money"] = "http://feeds.reuters.com/reuters/wealth"
+	urls["oddlyEnough"] = "http://feeds.reuters.com/reuters/oddlyEnoughNews"
+	urls["pictures"] = "http://feeds.reuters.com/reuters/ReutersPictures"
+	urls["people"] = "http://feeds.reuters.com/reuters/peopleNews"
+	urls["politics"] = "http://feeds.reuters.com/reuters/PoliticsNews"
+	urls["science"] = "http://feeds.reuters.com/reuters/scienceNews"
+	urls["sports"] = "http://feeds.reuters.com/reuters/sportsNews"
+	urls["technology"] = "http://feeds.reuters.com/reuters/technologyNews"
+	urls["top"] = "http://feeds.reuters.com/reuters/topNews"
+	urls["us"] = "http://feeds.reuters.com/reuters/domesticNews"
+	urls["world"] = "http://feeds.reuters.com/reuters/worldNews"
 
 	// Our request handlers.
-	server.POST("/news", newsHandler)
+	// This is just so you feel nicer.
+	server.GET("/news", func(ctx *gin.Context) {
+		fmt.Fprintln(ctx.Writer, "Hey, I'm News-GO, how are you today?")
+	})
+
+	server.POST("/news", func(ctx *gin.Context) {
+		// Simple check if you're using a PSP, or CURL, you silly user ;3
+		if ctx.GetHeader("HTTP_X_PSP_BROWSER") == "" {
+			ctx.AbortWithStatus(http.StatusUnavailableForLegalReasons)
+
+			// Actual stuff.
+		} else if getURL(ctx.PostForm("topic")) {
+			resp, err := http.Get(urls[ctx.PostForm("topic")])
+			if err != nil {
+				ctx.AbortWithStatus(http.StatusInternalServerError)
+			}
+
+			var xmlData rss
+			xml.NewDecoder(resp.Body).Decode(&xmlData)
+
+			// Converts and shortened it, I think.
+			xml.NewEncoder(ctx.Writer).Encode(xmlData)
+
+			// Other stuff; Bad request then.
+		} else {
+			ctx.AbortWithStatus(http.StatusBadRequest)
+		}
+	})
 
 	// If possible, we can replace this with RunTLS() in the future.
 	log.Println("Starting server...")
 	server.Run()
 }
 
-func newsHandler(ctx *gin.Context) {
-
-	if getURL(ctx.PostForm("topic")) {
-		parseToPSP(urls[ctx.PostForm("topic")], ctx)
-	} else {
-		ctx.Redirect(http.StatusBadRequest, "What are you even doing here?") // maybe I'll add some weird HTML data
-	}
-}
-
-func parseToPSP(url string, ctx *gin.Context) {
-	resp, err := http.Get(url)
-	if err != nil {
-		ctx.Redirect(http.StatusInternalServerError, "Couldn't fetch XML data.")
+func getURL(s string) bool {
+	if s == "" {
+		return false
 	}
 
-	var xmlData RSS
-	xml.NewDecoder(resp.Body).Decode(&xmlData)
-
-	// Converts and shortened it, I think
-	xml.NewEncoder(ctx.Writer).Encode(xmlData)
+	for _, v := range urls {
+		if v == s {
+			return true
+		}
+	}
+	return false
 }
