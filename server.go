@@ -67,13 +67,13 @@ type rss struct {
 }
 
 func main() {
-	log.Println("News-GO - 1.1.0")
+	log.Println("News-GO - 1.2.1")
 
-	if len(os.Args) < 1 || os.Args[0] == "" {
+	if len(os.Args) < 2 || os.Args[1] == "" {
 		log.Println("No port providen; using port 50052.")
 		port = "50052"
 	} else {
-		port = os.Args[0]
+		port = os.Args[1]
 	}
 
 	// Let's make an gin engine for our server, and fetch all URLs.
