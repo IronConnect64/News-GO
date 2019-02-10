@@ -31,8 +31,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Our URL list, held very tight, uwu.
 var urls map[string]string
 
+// Our RSS Data, extra friendly for your PSP.
 type rss struct {
 	XMLName xml.Name `xml:"rss"`
 
@@ -63,8 +65,6 @@ type rss struct {
 func main() {
 	log.Println("News-GO - 1.1.0")
 
-	// TODO: implementing RSS parsing
-
 	// Let's make an gin engine for our server, and fetch all URLs.
 	log.Println("Initializing server...")
 	server := gin.Default()
@@ -72,7 +72,7 @@ func main() {
 	// URL list.
 	urls = make(map[string]string)
 
-	// All RSS URLs from Reuters, held in a nice, simple array.
+	// All RSS URLs from Reuters, held in a nice and simple array.
 	urls["arts"] = "http://feeds.reuters.com/news/artsculture"
 	urls["business"] = "http://feeds.reuters.com/reuters/businessNews"
 	urls["company"] = "http://feeds.reuters.com/reuters/companyNews"
@@ -127,6 +127,7 @@ func main() {
 	server.Run()
 }
 
+// Simple check if we have a proper topic.
 func getURL(s string) bool {
 	if s == "" {
 		return false
