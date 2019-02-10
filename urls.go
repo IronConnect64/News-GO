@@ -1,28 +1,36 @@
 package main
 
-// GetURLs returns all Reuters RSS URLs.
-func GetURLs() map[string]string {
-	urls := make(map[string]string)
+var urls map[string]string
+
+func getURLs() {
+	urls = make(map[string]string)
 
 	// All RSS URLs from Reuters, held in a nice, simple array.
-	urls["Arts"] = "http://feeds.reuters.com/news/artsculture"
-	urls["Business"] = "http://feeds.reuters.com/reuters/businessNews"
-	urls["Company News"] = "http://feeds.reuters.com/reuters/companyNews"
-	urls["Entertainment"] = "http://feeds.reuters.com/reuters/entertainment"
-	urls["Environment"] = "http://feeds.reuters.com/reuters/environment"
-	urls["Health News"] = "http://feeds.reuters.com/reuters/healthNews"
-	urls["Lifestyle"] = "http://feeds.reuters.com/reuters/lifestyle"
-	urls["Money"] = "http://feeds.reuters.com/reuters/wealth"
-	urls["Oddly Enough"] = "http://feeds.reuters.com/reuters/oddlyEnoughNews"
-	urls["Pictures"] = "http://feeds.reuters.com/reuters/ReutersPictures"
-	urls["People"] = "http://feeds.reuters.com/reuters/peopleNews"
-	urls["Politics"] = "http://feeds.reuters.com/reuters/PoliticsNews"
-	urls["Science"] = "http://feeds.reuters.com/reuters/scienceNews"
-	urls["Sports"] = "http://feeds.reuters.com/reuters/sportsNews"
-	urls["Technology"] = "http://feeds.reuters.com/reuters/technologyNews"
-	urls["Top News"] = "http://feeds.reuters.com/reuters/topNews"
-	urls["US News"] = "http://feeds.reuters.com/reuters/domesticNews"
-	urls["World"] = "http://feeds.reuters.com/reuters/worldNews"
+	urls["arts"] = "http://feeds.reuters.com/news/artsculture"
+	urls["business"] = "http://feeds.reuters.com/reuters/businessNews"
+	urls["company"] = "http://feeds.reuters.com/reuters/companyNews"
+	urls["entertainment"] = "http://feeds.reuters.com/reuters/entertainment"
+	urls["environment"] = "http://feeds.reuters.com/reuters/environment"
+	urls["health"] = "http://feeds.reuters.com/reuters/healthNews"
+	urls["lifestyle"] = "http://feeds.reuters.com/reuters/lifestyle"
+	urls["money"] = "http://feeds.reuters.com/reuters/wealth"
+	urls["oddlyEnough"] = "http://feeds.reuters.com/reuters/oddlyEnoughNews"
+	urls["pictures"] = "http://feeds.reuters.com/reuters/ReutersPictures"
+	urls["people"] = "http://feeds.reuters.com/reuters/peopleNews"
+	urls["politics"] = "http://feeds.reuters.com/reuters/PoliticsNews"
+	urls["science"] = "http://feeds.reuters.com/reuters/scienceNews"
+	urls["sports"] = "http://feeds.reuters.com/reuters/sportsNews"
+	urls["technology"] = "http://feeds.reuters.com/reuters/technologyNews"
+	urls["top"] = "http://feeds.reuters.com/reuters/topNews"
+	urls["us"] = "http://feeds.reuters.com/reuters/domesticNews"
+	urls["world"] = "http://feeds.reuters.com/reuters/worldNews"
+}
 
-	return urls
+func getURL(s string) bool {
+	for _, v := range urls {
+		if v == s {
+			return true
+		}
+	}
+	return false
 }

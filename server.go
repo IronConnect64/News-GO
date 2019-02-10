@@ -23,6 +23,7 @@
 package main
 
 import (
+	"encoding/xml"
 	"log"
 	"net/http"
 
@@ -34,9 +35,10 @@ func main() {
 
 	// TODO: implementing RSS parsing
 
-	// Let's make an gin engine for our server.
+	// Let's make an gin engine for our server, and fetch all URLs.
 	log.Println("Initializing server...")
 	server := gin.Default()
+	getURLs()
 
 	// Our request handlers.
 	server.POST("/news", newsHandler)
@@ -47,12 +49,23 @@ func main() {
 }
 
 func newsHandler(ctx *gin.Context) {
-	switch ctx.PostForm("topic") {
-	case "arts":
-		// example stuff, here we'll need to respond with the XML data.
-		break
-	default:
-		ctx.Redirect(http.StatusNotFound, "") // maybe I'll add some weird HTML data
-		break
+
+	if getURL(ctx.PostForm("topic")) {
+		parseToPSP(urls[ctx.PostForm("topic")], ctx)
+	} else {
+		ctx.Redirect(http.StatusBadRequest, "What are you even doing here?") // maybe I'll add some weird HTML data
 	}
+}
+
+func parseToPSP(url string, ctx *gin.Context) {
+	resp, err := http.Get(url)
+	if err != nil {
+		ctx.Redirect(http.StatusInternalServerError, "Couldn't fetch XML data.")
+	}
+
+	var xmlData RSS
+	xml.NewDecoder(resp.Body).Decode(&xmlData)
+
+	// Converts and shortened it, I think
+	xml.NewEncoder(ctx.Writer).Encode(xmlData)
 }
