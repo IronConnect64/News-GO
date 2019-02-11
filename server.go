@@ -105,11 +105,11 @@ func main() {
 
 	// Our request handlers.
 	// This is just so you feel nicer.
-	server.GET("/news", func(ctx *gin.Context) {
+	server.GET("/", func(ctx *gin.Context) {
 		fmt.Fprintln(ctx.Writer, "Hey, I'm News-GO, how are you today?")
 	})
 
-	server.POST("/news", func(ctx *gin.Context) {
+	server.POST("/", func(ctx *gin.Context) {
 		// Simple check if you're using a PSP, or CURL, you silly user ;3
 		if ctx.GetHeader("HTTP_X_PSP_BROWSER") == "" {
 			ctx.AbortWithStatus(http.StatusUnavailableForLegalReasons)
