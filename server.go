@@ -78,6 +78,14 @@ func main() {
 
 	// Let's make an gin engine for our server, and fetch all URLs.
 	log.Println("Initializing server...")
+
+	// Debug more or Release mode? Your choice.
+	if len(os.Args) > 2 && os.Args[2] == "--debug" {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	server := gin.Default()
 
 	// URL list.
