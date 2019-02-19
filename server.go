@@ -24,7 +24,6 @@ package main
 
 import (
 	"encoding/xml"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -111,20 +110,11 @@ func main() {
 	urls["us"] = "http://feeds.reuters.com/reuters/domesticNews"
 	urls["world"] = "http://feeds.reuters.com/reuters/worldNews"
 
-	// Our request handlers.
-	// This is just so you feel nicer.
 	server.GET("/", func(ctx *gin.Context) {
-		fmt.Fprintln(ctx.Writer, "Hey, I'm News-GO, how are you today?")
-	})
-
-	server.POST("/", func(ctx *gin.Context) {
-		// Simple check if you're using a PSP, or CURL, you silly user ;3
 		if ctx.GetHeader("HTTP_X_PSP_BROWSER") == "" {
 			ctx.AbortWithStatus(http.StatusUnavailableForLegalReasons)
-
-			// Actual stuff.
-		} else if getURL(ctx.PostForm("topic")) {
-			resp, err := http.Get(urls[ctx.PostForm("topic")])
+		} else if getURL(ctx.GetHeader("Topic")) {
+			resp, err := http.Get(urls[ctx.GetHeader("Topic")])
 			if err != nil {
 				ctx.AbortWithStatus(http.StatusInternalServerError)
 			}
