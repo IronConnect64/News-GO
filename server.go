@@ -1,6 +1,6 @@
-//		Copyright (c) 2019 IronConnect64
+//	Copyright (c) 2019 PSPConnect64
 //
-//		News-GO, a RSS Feed server for the PSP News Channel, which will make it very easy to create and serve PSP-friendly RSS files.
+//	News-GO, a RSS Feed server for the PSP News Channel, which will make it very easy to create and serve PSP-friendly RSS files.
 //
 //	Permission is hereby granted, free of charge, to any person obtaining a copy
 //	of this software and associated documentation files (the "Software"), to deal
@@ -20,21 +20,19 @@
 //	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //	SOFTWARE.
 
+// If I'm honest - this software is nothing but unnecessary.
+// The PSP could do this all by itself and that'll be it, but apparently, I wanted to create this a long time ago.
+// I, sometimes, really hate my earlier decisions. Quite "hilarious" to hear that from me as well, right?
+
 package main
 
 import (
 	"encoding/xml"
+	"fmt"
 	"log"
 	"net/http"
-	"os"
 
-	"github.com/gin-gonic/gin"
-)
-
-// Our URL list, held very tight, uwu.
-var (
-	urls map[string]string
-	port string
+	"github.com/firstrow/tcp_server"
 )
 
 // Our RSS Data, extra friendly for your PSP.
@@ -66,31 +64,10 @@ type rss struct {
 }
 
 func main() {
-	log.Println("News-GO - 1.2.1")
+	log.Println("News-GO - 2.0.0")
 
-	if len(os.Args) < 2 || os.Args[1] == "" {
-		log.Println("No port providen; using port 50052.")
-		port = "50052"
-	} else {
-		port = os.Args[1]
-	}
+	var urls = make(map[string]string)
 
-	// Let's make an gin engine for our server, and fetch all URLs.
-	log.Println("Initializing server...")
-
-	// Debug more or Release mode? Your choice.
-	if len(os.Args) > 2 && os.Args[2] == "--debug" {
-		gin.SetMode(gin.DebugMode)
-	} else {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
-	server := gin.Default()
-
-	// URL list.
-	urls = make(map[string]string)
-
-	// All RSS URLs from Reuters, held in a nice and simple array.
 	urls["arts"] = "http://feeds.reuters.com/news/artsculture"
 	urls["business"] = "http://feeds.reuters.com/reuters/businessNews"
 	urls["company"] = "http://feeds.reuters.com/reuters/companyNews"
@@ -99,7 +76,7 @@ func main() {
 	urls["health"] = "http://feeds.reuters.com/reuters/healthNews"
 	urls["lifestyle"] = "http://feeds.reuters.com/reuters/lifestyle"
 	urls["money"] = "http://feeds.reuters.com/reuters/wealth"
-	urls["oddlyEnough"] = "http://feeds.reuters.com/reuters/oddlyEnoughNews"
+	urls["oddly"] = "http://feeds.reuters.com/reuters/oddlyEnoughNews"
 	urls["pictures"] = "http://feeds.reuters.com/reuters/ReutersPictures"
 	urls["people"] = "http://feeds.reuters.com/reuters/peopleNews"
 	urls["politics"] = "http://feeds.reuters.com/reuters/PoliticsNews"
@@ -110,42 +87,46 @@ func main() {
 	urls["us"] = "http://feeds.reuters.com/reuters/domesticNews"
 	urls["world"] = "http://feeds.reuters.com/reuters/worldNews"
 
-	server.GET("/", func(ctx *gin.Context) {
-		if ctx.GetHeader("HTTP_X_PSP_BROWSER") == "" {
-			ctx.AbortWithStatus(http.StatusUnavailableForLegalReasons)
-		} else if getURL(ctx.GetHeader("Topic")) {
-			resp, err := http.Get(urls[ctx.GetHeader("Topic")])
-			if err != nil {
-				ctx.AbortWithStatus(http.StatusInternalServerError)
+	server := tcp_server.New(":50052")
+
+	server.OnNewMessage(func(c *tcp_server.Client, message string) {
+		fmt.Println(message)
+
+		check := func(s string) bool { // Is this impressive work?
+			for _, v := range urls {
+				if v == s {
+					return true
+				}
 			}
 
-			var xmlData rss
-			xml.NewDecoder(resp.Body).Decode(&xmlData)
+			return false
+		}
 
-			// Converts and shortened it, I think.
-			xml.NewEncoder(ctx.Writer).Encode(xmlData)
+		if !check(message) {
+			c.Send("INVALID_TOPIC")
+			return
+		}
 
-			// Other stuff; Bad request then.
-		} else {
-			ctx.AbortWithStatus(http.StatusBadRequest)
+		resp, err := http.Get(urls[message])
+		if err != nil {
+			c.Send("SERVER_ERROR_1")
+			log.Printf("The server experienced an error, as we tried to fetch the data: %s\n", err.Error())
+			return
+		}
+
+		var xmlData rss
+		if err := xml.NewDecoder(resp.Body).Decode(&xmlData); err != nil {
+			c.Send("SERVER_ERROR_2")
+			log.Printf("The server experienced an error, as we tried to decode the received data: %s\n", err.Error())
+			return
+		}
+
+		if err := xml.NewEncoder(c.Conn()).Encode(xmlData); err != nil {
+			c.Send("SERVER_ERROR_2")
+			log.Printf("The server experienced an error, as we tried to encode the received data: %s\n", err.Error())
+			return
 		}
 	})
 
-	// If possible, we can replace this with RunTLS() in the future.
-	log.Println("Starting server...")
-	server.Run(":" + port)
-}
-
-// Simple check if we have a proper topic.
-func getURL(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, v := range urls {
-		if v == s {
-			return true
-		}
-	}
-	return false
+	server.Listen()
 }
